@@ -1,0 +1,17 @@
+{
+  "name": "Auto Proposal Wire Generator",
+  "id": "auto-proposal-wire-generator",
+  "api": "1.0.0",
+  "main": "main.js",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["*"],
+    "reasoning": "Downloads signed Wire JSON from Cloud Storage"
+  },
+  "relaunchButtons": [
+    {
+      "command": "regenerate-wire",
+      "name": "Regenerate Wire from JSON"
+    }
+  ]
+}

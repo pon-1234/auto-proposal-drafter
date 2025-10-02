@@ -216,6 +216,17 @@ echo -n "YOUR_SECRET" | gcloud secrets versions add SECRET_NAME --data-file=-
 
 ---
 
+## 🎨 Figmaプラグインでワイヤーを自動配置
+
+1. `figma-plugin` ディレクトリで `npm install && npm run build` を実行。
+2. Figma の **資産 → プラグイン → 開発 → manifest からインポート** を開き、`figma-plugin/dist/manifest.json` を指定。
+3. プラグインを起動し、署名付きURLまたはローカルJSONを指定すると Desktop/Tablet/Mobile フレームが生成されます。
+4. UIキットに存在しない `Section/<Kind>/<Variant>` は破線のプレースホルダーとして挿入され、警告エリアに一覧表示されます。
+
+> テキスト差し込みはレイヤー名と JSON の `placeholders` キーを照合しています。UIキット側のレイヤー名を `headline`, `cta` など英数字で揃えておくと自動で流し込みされます。
+
+---
+
 ## 🐛 トラブルシューティング
 
 ### ジョブがFAILEDになる

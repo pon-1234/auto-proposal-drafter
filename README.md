@@ -28,6 +28,7 @@ A sample opportunity payload is provided at `data/opportunities/OPP-2025-001.jso
 - `src/auto_proposal_drafter/generator.py` encapsulates the structure/wire/estimate synthesis using the shared dictionaries in `src/auto_proposal_drafter/dictionaries.py`.
 - `services/api/main.py` mimics the Cloud Run entry point. It stores jobs in-memory (`JobStore`) and defers execution to a background task. Replace `LocalOpportunityRepository` with a Notion/Firestore backed implementation for production.
 - Estimates leverage a lightweight pricebook (section rates + coefficient rules) and emit per-line calculated costs.
+- `figma-plugin/` contains the custom Figma plugin that reads the Wire JSON and lays out desktop/tablet/mobile frames using the internal UI kit. Build with `npm run build` then import `figma-plugin/dist/manifest.json` in Figma.
 
 ## Production Architecture
 

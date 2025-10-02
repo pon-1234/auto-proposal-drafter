@@ -1,0 +1,16 @@
+{
+  "name": "wire-proposal-figma-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:watch": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.85.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.4.0"
+  }
+}
