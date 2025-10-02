@@ -29,9 +29,48 @@ A sample opportunity payload is provided at `data/opportunities/OPP-2025-001.jso
 - `services/api/main.py` mimics the Cloud Run entry point. It stores jobs in-memory (`JobStore`) and defers execution to a background task. Replace `LocalOpportunityRepository` with a Notion/Firestore backed implementation for production.
 - Estimates leverage a lightweight pricebook (section rates + coefficient rules) and emit per-line calculated costs.
 
+## Production Architecture
+
+The codebase is now production-ready with the following components:
+
+### Infrastructure (GCP)
+- **Firestore**: Job store, dictionaries, and opportunity cache
+- **Pub/Sub**: Async job queue with dead-letter queue for failures
+- **Cloud Run**: API (public) and Worker (internal) services
+- **Secret Manager**: API keys for Notion, HubSpot, Slack, Asana
+- **Vertex AI**: Gemini integration for AI-enhanced generation
+- **Cloud Scheduler**: Periodic Notion polling
+- **Monitoring**: Structured logging, alerts, error reporting
+
+### Services
+- **API Service** (`services/api/main.py`): Public REST API, enqueues jobs to Pub/Sub in production
+- **Worker Service** (`services/worker/main.py`): Processes jobs from Pub/Sub, generates drafts
+- **Post Processor** (`post_processor.py`): Distributes outputs to Notion, Sheets, Figma, Asana
+
+### Ingestors
+- **Notion** (`ingestors/notion.py`): Fetch opportunities from Notion databases
+- **HubSpot** (`ingestors/hubspot.py`): Fetch opportunities from HubSpot CRM
+
+### AI Integration
+- **Vertex AI Adapter** (`vertex_ai_adapter.py`): Gemini-powered copy enhancement and section suggestions
+
+## Deployment
+
+See `DEPLOYMENT.md` for complete deployment instructions.
+
+Quick start:
+```bash
+# Deploy infrastructure
+cd terraform && terraform apply
+
+# Deploy services
+gcloud builds submit --config=cloudbuild.yaml
+```
+
 ## Next Steps
 
-- Swap the in-memory job store with Firestore/PubSub integrations as per the target architecture.
-- Implement the Vertex AI adapter and prompt orchestration layer behind `ProposalGenerator`.
-- Expand dictionaries (sections, presets, coefficients) and move them to Firestore for runtime management.
-- Add integration tests covering the Slack/Asana/Sheets distribution once APIs are connected.
+- Add integration tests covering end-to-end workflows
+- Implement Slack `/generate` command handler
+- Move dictionaries to Firestore for runtime management
+- Expand Vertex AI prompts with RAG support (Matching Engine)
+- Complete operational runbooks for error recovery

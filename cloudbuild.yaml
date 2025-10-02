@@ -1,0 +1,123 @@
+steps:
+  # Run tests
+  - name: 'python:3.11-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install -e .[dev]
+        pytest -v
+
+  # Build API container
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-api'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/api:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/api:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    waitFor: ['test']
+
+  # Build Worker container
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-worker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/worker:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/worker:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '--build-arg'
+      - 'SERVICE=worker'
+      - '.'
+    waitFor: ['test']
+
+  # Push API container
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-api'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/api'
+    waitFor: ['build-api']
+
+  # Push Worker container
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-worker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/worker'
+    waitFor: ['build-worker']
+
+  # Deploy API to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-api'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'api'
+      - '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/api:${SHORT_SHA}'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--set-env-vars=ENVIRONMENT=${_ENVIRONMENT},PROJECT_ID=${PROJECT_ID},PUBSUB_TOPIC_DRAFT_REQUESTS=${_PUBSUB_TOPIC_DRAFT_REQUESTS}'
+      - '--service-account=api-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--max-instances=${_API_MAX_INSTANCES}'
+      - '--min-instances=${_API_MIN_INSTANCES}'
+      - '--memory=1Gi'
+      - '--cpu=2'
+    waitFor: ['push-api']
+
+  # Deploy Worker to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-worker'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'worker'
+      - '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/worker:${SHORT_SHA}'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--set-env-vars=ENVIRONMENT=${_ENVIRONMENT},PROJECT_ID=${PROJECT_ID},PUBSUB_TOPIC_DRAFT_COMPLETED=${_PUBSUB_TOPIC_DRAFT_COMPLETED},VERTEX_AI_LOCATION=${_VERTEX_AI_LOCATION}'
+      - '--service-account=worker-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--no-allow-unauthenticated'
+      - '--max-instances=${_WORKER_MAX_INSTANCES}'
+      - '--min-instances=0'
+      - '--memory=4Gi'
+      - '--cpu=4'
+      - '--timeout=600s'
+      - '--command=uvicorn'
+      - '--args=services.worker.main:app,--host,0.0.0.0,--port,8080'
+    waitFor: ['push-worker']
+
+substitutions:
+  _REGION: asia-northeast1
+  _ENVIRONMENT: dev
+  _PUBSUB_TOPIC_DRAFT_REQUESTS: draft-requests
+  _PUBSUB_TOPIC_DRAFT_COMPLETED: draft-completed
+  _VERTEX_AI_LOCATION: asia-northeast1
+  _API_MAX_INSTANCES: '10'
+  _API_MIN_INSTANCES: '0'
+  _WORKER_MAX_INSTANCES: '20'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+images:
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/api:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/api:latest'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/worker:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/containers/worker:latest'
+
+timeout: 1800s

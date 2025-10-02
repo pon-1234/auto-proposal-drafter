@@ -1,0 +1,26 @@
+steps:
+  # Run tests
+  - name: 'python:3.11-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install -e .[dev]
+        pytest -v
+
+  # Deploy to staging with tag
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'deploy-staging'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud builds submit \
+          --config=cloudbuild.yaml \
+          --substitutions=_ENVIRONMENT=staging,_API_MIN_INSTANCES=1,_API_MAX_INSTANCES=5,_WORKER_MAX_INSTANCES=10
+
+substitutions:
+  _REGION: asia-northeast1
+
+timeout: 1800s

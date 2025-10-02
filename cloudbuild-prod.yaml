@@ -1,0 +1,26 @@
+steps:
+  # Run tests
+  - name: 'python:3.11-slim'
+    id: 'test'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install -e .[dev]
+        pytest -v
+
+  # Deploy to production with tag
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'deploy-prod'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud builds submit \
+          --config=cloudbuild.yaml \
+          --substitutions=_ENVIRONMENT=prod,_API_MIN_INSTANCES=1,_API_MAX_INSTANCES=20,_WORKER_MAX_INSTANCES=50
+
+substitutions:
+  _REGION: asia-northeast1
+
+timeout: 1800s

@@ -3,13 +3,15 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal, Sequence
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 class OpportunityAssets(BaseModel):
-    copy: bool | None = Field(default=None, description="Whether marketing copy is provided")
+    copy: bool | None = Field(default=None, description="Whether marketing copy is provided", alias="copy_text")
     photo: bool | None = Field(default=None, description="Whether photography assets are provided")
     logo: bool | None = Field(default=None, description="Whether logo assets are provided")
+
+    model_config = {"populate_by_name": True}
 
 
 class Opportunity(BaseModel):
@@ -26,7 +28,7 @@ class Opportunity(BaseModel):
     constraints: Sequence[str] = Field(default_factory=list)
     assets: OpportunityAssets = Field(default_factory=OpportunityAssets)
     notes: str | None = None
-    created_by: EmailStr | None = None
+    created_by: str | None = None
     source: Literal["notion", "slack", "manual", "hubspot", "unknown"] = "unknown"
 
     class Config:
