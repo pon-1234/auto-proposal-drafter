@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "auto-proposal-drafter"
+version = "0.1.0"
+description = "Automated proposal drafting pipeline for site structure, wireframes, and estimates."
+authors = [
+  {name = "Auto Proposal Drafter Team"}
+]
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.110,<1.0",
+  "pydantic>=2.5,<3.0",
+  "uvicorn[standard]>=0.22,<1.0",
+  "python-dateutil>=2.8,<3.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4,<8.0",
+  "httpx>=0.24,<0.27"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

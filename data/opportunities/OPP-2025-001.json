@@ -1,0 +1,17 @@
+{
+  "id": "OPP-2025-001",
+  "company": "dot.homes",
+  "title": "新LP制作",
+  "goal": "リード獲得",
+  "kpi": ["CVR", "送信数"],
+  "deadline": "2025-02-15",
+  "budget_band": "〜600万",
+  "persona": "B2B 情シス／内製化・CV鈍化が課題",
+  "must_have": ["問い合わせフォーム", "実績掲載", "GA4計測"],
+  "references": ["https://example.com"],
+  "constraints": ["ブランドカラー厳守"],
+  "assets": {"copy": false, "photo": true, "logo": true},
+  "notes": "短納期。一部CMS化",
+  "created_by": "sales@company.com",
+  "source": "notion"
+}
