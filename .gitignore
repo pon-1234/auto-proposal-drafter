@@ -39,6 +39,11 @@ data/opportunities/*.json
 # Test files
 test_*.json
 
+# Demo run outputs
+demo_output.json
+demo_output_summary.md
+demo_request.json
+
 # Terraform
 terraform/.terraform/
 terraform/.terraform.lock.hcl
